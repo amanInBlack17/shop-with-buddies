@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,13 +8,14 @@ import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, Pagi
 import { Heart, ShoppingCart, ThumbsUp, ThumbsDown, Star, Share, Filter, Grid, List } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Product } from '@/pages/Index';
+import axios from 'axios';
 
 interface ProductGridProps {
   onProductSelect: (product: Product) => void;
   selectedProduct: Product | null;
   onAddToCart: (product: Product, quantity?: number) => void;
   onAddToWishlist: (product: Product) => void;
-  isInWishlist: (productId: number) => boolean;
+  isInWishlist: (productId: string) => boolean;
   isCollabMode?: boolean;
 }
 
@@ -34,217 +35,29 @@ export const ProductGrid = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8);
   const { toast } = useToast();
+  
 
-  const mockProducts: Product[] = [
-    {
-      id: 1,
-      name: "Wireless Noise-Canceling Headphones",
-      price: 299.99,
-      originalPrice: 399.99,
-      discount: 25,
-      image: "/placeholder.svg",
-      rating: 4.5,
-      reviews: 1234,
-      store: "TechStore",
-      category: "Electronics",
-      inStock: true,
-      description: "Premium wireless headphones with active noise cancellation and 30-hour battery life."
-    },
-    {
-      id: 2,
-      name: "Sustainable Cotton T-Shirt",
-      price: 39.99,
-      image: "/placeholder.svg",
-      rating: 4.7,
-      reviews: 567,
-      store: "EcoFashion",
-      category: "Fashion",
-      inStock: true,
-      description: "Made from 100% organic cotton, perfect for everyday wear."
-    },
-    {
-      id: 3,
-      name: "Smart Home Security Camera",
-      price: 199.99,
-      originalPrice: 249.99,
-      discount: 20,
-      image: "/placeholder.svg",
-      rating: 4.3,
-      reviews: 890,
-      store: "HomeTech",
-      category: "Home Security",
-      inStock: true,
-      description: "1080p HD camera with night vision and motion detection."
-    },
-    {
-      id: 4,
-      name: "Ergonomic Office Chair",
-      price: 449.99,
-      image: "/placeholder.svg",
-      rating: 4.6,
-      reviews: 345,
-      store: "OfficeSupply",
-      category: "Furniture",
-      inStock: false,
-      description: "Adjustable office chair with lumbar support and breathable mesh."
-    },
-    {
-      id: 5,
-      name: "Portable Bluetooth Speaker",
-      price: 79.99,
-      originalPrice: 99.99,
-      discount: 20,
-      image: "/placeholder.svg",
-      rating: 4.4,
-      reviews: 678,
-      store: "AudioWorld",
-      category: "Electronics",
-      inStock: true,
-      description: "Waterproof speaker with 12-hour battery and powerful bass."
-    },
-    {
-      id: 6,
-      name: "Premium Yoga Mat",
-      price: 89.99,
-      image: "/placeholder.svg",
-      rating: 4.8,
-      reviews: 234,
-      store: "FitnessPro",
-      category: "Fitness",
-      inStock: true,
-      description: "Non-slip yoga mat with alignment lines and carrying strap."
-    },
-    {
-      id: 7,
-      name: "Stainless Steel Water Bottle",
-      price: 29.99,
-      originalPrice: 39.99,
-      discount: 25,
-      image: "/placeholder.svg",
-      rating: 4.6,
-      reviews: 456,
-      store: "EcoLife",
-      category: "Lifestyle",
-      inStock: true,
-      description: "Insulated water bottle that keeps drinks cold for 24 hours."
-    },
-    {
-      id: 8,
-      name: "Gaming Mechanical Keyboard",
-      price: 159.99,
-      image: "/placeholder.svg",
-      rating: 4.7,
-      reviews: 789,
-      store: "GameHub",
-      category: "Electronics",
-      inStock: true,
-      description: "RGB backlit mechanical keyboard with customizable keys."
-    },
-    {
-      id: 9,
-      name: "Wireless Charging Pad",
-      price: 49.99,
-      originalPrice: 69.99,
-      discount: 29,
-      image: "/placeholder.svg",
-      rating: 4.2,
-      reviews: 423,
-      store: "TechStore",
-      category: "Electronics",
-      inStock: true,
-      description: "Fast wireless charging pad compatible with all Qi-enabled devices."
-    },
-    {
-      id: 10,
-      name: "Organic Skincare Set",
-      price: 89.99,
-      image: "/placeholder.svg",
-      rating: 4.9,
-      reviews: 156,
-      store: "BeautyNature",
-      category: "Beauty",
-      inStock: true,
-      description: "Complete organic skincare routine with natural ingredients."
-    },
-    {
-      id: 11,
-      name: "Smart Fitness Tracker",
-      price: 199.99,
-      originalPrice: 249.99,
-      discount: 20,
-      image: "/placeholder.svg",
-      rating: 4.4,
-      reviews: 892,
-      store: "FitnessPro",
-      category: "Fitness",
-      inStock: true,
-      description: "Advanced fitness tracker with heart rate monitoring and GPS."
-    },
-    {
-      id: 12,
-      name: "Artisan Coffee Beans",
-      price: 24.99,
-      image: "/placeholder.svg",
-      rating: 4.8,
-      reviews: 278,
-      store: "CoffeeRoasters",
-      category: "Food & Beverage",
-      inStock: true,
-      description: "Premium single-origin coffee beans, freshly roasted to perfection."
-    },
-    {
-      id: 13,
-      name: "Minimalist Desk Lamp",
-      price: 79.99,
-      image: "/placeholder.svg",
-      rating: 4.5,
-      reviews: 167,
-      store: "HomeDesign",
-      category: "Home & Garden",
-      inStock: true,
-      description: "Modern LED desk lamp with adjustable brightness and color temperature."
-    },
-    {
-      id: 14,
-      name: "Eco-Friendly Backpack",
-      price: 119.99,
-      originalPrice: 149.99,
-      discount: 20,
-      image: "/placeholder.svg",
-      rating: 4.6,
-      reviews: 334,
-      store: "EcoLife",
-      category: "Lifestyle",
-      inStock: true,
-      description: "Durable backpack made from recycled materials with laptop compartment."
-    },
-    {
-      id: 15,
-      name: "Ceramic Dinner Set",
-      price: 159.99,
-      image: "/placeholder.svg",
-      rating: 4.7,
-      reviews: 289,
-      store: "KitchenEssentials",
-      category: "Home & Garden",
-      inStock: true,
-      description: "Elegant 16-piece ceramic dinner set, dishwasher and microwave safe."
-    },
-    {
-      id: 16,
-      name: "Wireless Gaming Mouse",
-      price: 89.99,
-      originalPrice: 119.99,
-      discount: 25,
-      image: "/placeholder.svg",
-      rating: 4.3,
-      reviews: 445,
-      store: "GameHub",
-      category: "Electronics",
-      inStock: true,
-      description: "High-precision gaming mouse with customizable RGB lighting."
+  //fetching the mock products from api
+  const [mockProducts, setMockProducts] = useState<Product[]>([]);
+
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_PUBLIC_BASEURL}/api/products`); // Adjust the endpoint as needed
+      setMockProducts(response.data);
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load products. Please try again later.",
+        variant: "destructive",
+      });
     }
-  ];
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+  
 
   const categories = ['all', ...Array.from(new Set(mockProducts.map(p => p.category)))];
 
@@ -259,8 +72,6 @@ export const ProductGrid = ({
       switch (sortBy) {
         case 'price-low': return a.price - b.price;
         case 'price-high': return b.price - a.price;
-        case 'rating': return b.rating - a.rating;
-        case 'popularity': return b.reviews - a.reviews;
         default: return 0;
       }
     });
@@ -282,7 +93,7 @@ export const ProductGrid = ({
     setCurrentPage(1);
   };
 
-  const handleReaction = (productId: number, type: 'like' | 'dislike') => {
+  const handleReaction = (productId: string, type: 'like' | 'dislike') => {
     const key = `${productId}_${type}`;
     setReactions(prev => ({
       ...prev,
@@ -299,7 +110,7 @@ export const ProductGrid = ({
     onAddToCart(product);
     toast({
       title: "Added to Cart!",
-      description: `${product.name} has been added to your cart`,
+      description: `${product.title} has been added to your cart`,
     });
   };
 
@@ -308,7 +119,7 @@ export const ProductGrid = ({
     const isAdding = !isInWishlist(product.id);
     toast({
       title: isAdding ? "Added to Wishlist!" : "Removed from Wishlist!",
-      description: `${product.name} has been ${isAdding ? 'added to' : 'removed from'} your wishlist`,
+      description: `${product.title} has been ${isAdding ? 'added to' : 'removed from'} your wishlist`,
     });
   };
 
@@ -398,7 +209,7 @@ export const ProductGrid = ({
       {/* Product Grid */}
       <div className={`
         ${viewMode === 'grid' 
-          ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6' 
+          ? `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ${!isCollabMode ? 'xl:grid-cols-4' : null} gap-4 md:gap-6` 
           : 'space-y-4'
         } 
         mb-8
@@ -409,7 +220,7 @@ export const ProductGrid = ({
             className={`
               hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]
               ${viewMode === 'list' ? 'flex flex-row' : ''}
-              ${!product.inStock ? 'opacity-75' : ''}
+              ${!product.stock ? 'opacity-75' : ''}
               dark:bg-gray-800 dark:border-gray-700
             `}
             onClick={() => onProductSelect(product)}
@@ -418,7 +229,7 @@ export const ProductGrid = ({
               <div className={`relative mb-4 ${viewMode === 'list' ? 'w-48 mr-4 mb-0' : ''}`}>
                 <img
                   src={product.image}
-                  alt={product.name}
+                  alt={product.title}
                   className={`object-cover rounded-lg ${
                     viewMode === 'list' ? 'w-full h-32' : 'w-full h-48'
                   }`}
@@ -434,12 +245,7 @@ export const ProductGrid = ({
                     }}
                   />
                 </div>
-                {product.discount && (
-                  <Badge className="absolute top-2 left-2 bg-red-500 text-white">
-                    {product.discount}% OFF
-                  </Badge>
-                )}
-                {!product.inStock && (
+                {!product.stock && (
                   <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
                     <span className="text-white font-semibold">Out of Stock</span>
                   </div>
@@ -449,30 +255,12 @@ export const ProductGrid = ({
               <div className={`space-y-3 ${viewMode === 'list' ? 'flex-1' : ''}`}>
                 <div>
                   <h3 className="font-semibold text-lg text-gray-800 dark:text-white line-clamp-2">
-                    {product.name}
+                    {product.title}
                   </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{product.store}</p>
+                  {/* <p className="text-sm text-gray-500 dark:text-gray-400">{product.store}</p> */}
                   {viewMode === 'list' && (
                     <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-2">{product.description}</p>
                   )}
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <div className="flex items-center space-x-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`w-4 h-4 ${
-                          i < Math.floor(product.rating)
-                            ? 'text-yellow-400 fill-yellow-400'
-                            : 'text-gray-300 dark:text-gray-600'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-sm text-gray-600 dark:text-gray-300">
-                    {product.rating} ({product.reviews})
-                  </span>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -480,18 +268,13 @@ export const ProductGrid = ({
                     <span className="text-2xl font-bold text-gray-800 dark:text-white">
                       ${product.price}
                     </span>
-                    {product.originalPrice && (
-                      <span className="text-lg text-gray-500 dark:text-gray-400 line-through">
-                        ${product.originalPrice}
-                      </span>
-                    )}
                   </div>
                   <Badge variant="secondary">{product.category}</Badge>
                 </div>
 
                 <div className="flex items-center justify-between pt-2">
                   {isCollabMode && (
-                    <div className="flex items-center space-x-2">
+                    <div className="flex-1 items-center space-x-2">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -501,7 +284,7 @@ export const ProductGrid = ({
                         }}
                         className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20"
                       >
-                        <ThumbsUp className="w-4 h-4 mr-1" />
+                        <ThumbsUp className="w-4 h-4" />
                         {reactions[`${product.id}_like`] || 0}
                       </Button>
                       <Button
@@ -513,7 +296,7 @@ export const ProductGrid = ({
                         }}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
                       >
-                        <ThumbsDown className="w-4 h-4 mr-1" />
+                        <ThumbsDown className="w-4 h-4" />
                         {reactions[`${product.id}_dislike`] || 0}
                       </Button>
                     </div>
@@ -521,16 +304,16 @@ export const ProductGrid = ({
 
                   <div className="flex space-x-2">
                     <Button
-                      size="sm"
+                      size='sm'
                       className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleAddToCart(product);
                       }}
-                      disabled={!product.inStock}
+                      disabled={!product.stock}
                     >
-                      <ShoppingCart className="w-4 h-4 mr-1" />
-                      {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+                      <ShoppingCart className="w-3 h-3" />
+                      {product.stock ? 'Add to Cart' : 'Out of Stock'}
                     </Button>
                   </div>
                 </div>

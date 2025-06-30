@@ -1,161 +1,126 @@
+import { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MessageCircle, X } from 'lucide-react';
+import { useAppContext } from '@/context/AppContext';
+import { socket } from '@/lib/socket'; // make sure your socket is exported from a shared file
+import ReactMarkdown from 'react-markdown';
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Send, Smile, Image, Link } from 'lucide-react';
+const ChatInterface = () => {
+  // const { username, roomCode } = useAppContext();
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
 
-interface ChatPanelProps {
-  roomId: string;
-}
+  const toggleChat = () => setIsOpen(!isOpen);
+  const bottomRef = useRef(null);
 
-export const ChatPanel = ({ roomId }: ChatPanelProps) => {
-  const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      user: 'Sarah M.',
-      avatar: 'SM',
-      message: 'Hey! Check out this headphone deal 🎧',
-      timestamp: '2:45 PM',
-      type: 'text'
-    },
-    {
-      id: 2,
-      user: 'Mike R.',
-      avatar: 'MR',
-      message: 'Looks great! Adding to wishlist 👍',
-      timestamp: '2:46 PM',
-      type: 'text'
-    },
-    {
-      id: 3,
-      user: 'You',
-      avatar: 'JD',
-      message: 'What about this yoga mat? Perfect for our home gym!',
-      timestamp: '2:47 PM',
-      type: 'text'
-    },
-    {
-      id: 4,
-      user: 'Sarah M.',
-      avatar: 'SM',
-      message: 'Love it! The reviews are amazing ⭐⭐⭐⭐⭐',
-      timestamp: '2:48 PM',
-      type: 'text'
-    }
-  ]);
+  const username = localStorage.getItem('username') || '';
+  const roomCode = localStorage.getItem('roomCode') || '';
+
+  useEffect(() => {
+    if (!socket || !roomCode || !username) return;
+    if (!socket.connected) socket.connect();
+
+    // Join the room on socket connection
+    // socket.emit('join-room', { roomCode, username });
+
+    // Listen for incoming messages
+    socket.on('receive-message', (message) => {
+      setMessages(prev => [...prev, message]);
+    });
+
+    return () => {
+      socket.off('receive-message');
+    };
+  }, [roomCode, username]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const sendMessage = () => {
-    if (message.trim()) {
-      const newMessage = {
-        id: messages.length + 1,
-        user: 'You',
-        avatar: 'JD',
-        message: message,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        type: 'text'
-      };
-      setMessages([...messages, newMessage]);
-      setMessage('');
-    }
-  };
+    if (!input.trim()) return;
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      sendMessage();
-    }
+    const messageData = {
+      sender: username,
+      text: input,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Emit message to server
+    socket.emit('send-message', { roomCode, message: messageData });
+
+    // Add to local state immediately
+    setMessages(prev => [...prev, messageData]);
+
+    setInput('');
   };
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>Group Chat</span>
-          <Badge variant="secondary" className="bg-green-100 text-green-700">
-            3 online
-          </Badge>
-        </CardTitle>
-      </CardHeader>
-      
-      <CardContent className="flex-1 flex flex-col">
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto space-y-4 mb-4 max-h-[400px]">
-          {messages.map((msg) => (
-            <div key={msg.id} className="flex items-start space-x-3">
-              <Avatar className="w-8 h-8 flex-shrink-0">
-                <AvatarFallback className="text-xs bg-gradient-to-r from-purple-600 to-pink-600 text-white">
-                  {msg.avatar}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center space-x-2 mb-1">
-                  <span className="font-medium text-sm">{msg.user}</span>
-                  <span className="text-xs text-gray-500">{msg.timestamp}</span>
-                </div>
-                <div className="bg-gray-100 rounded-lg p-3">
-                  <p className="text-sm">{msg.message}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+    <div className="fixed bottom-4 right-4 z-50">
+      {!isOpen && (
+        <button
+          onClick={toggleChat}
+          className="p-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition"
+        >
+          <MessageCircle className="w-6 h-6" />
+        </button>
+      )}
 
-        {/* Quick reactions */}
-        <div className="flex space-x-2 mb-4">
-          {['👍', '❤️', '😍', '🔥', '💯'].map((emoji) => (
-            <Button
-              key={emoji}
-              variant="ghost"
-              size="sm"
-              className="hover:bg-gray-100 text-lg"
-              onClick={() => {
-                const reactionMessage = {
-                  id: messages.length + 1,
-                  user: 'You',
-                  avatar: 'JD',
-                  message: emoji,
-                  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                  type: 'reaction'
-                };
-                setMessages([...messages, reactionMessage]);
-              }}
-            >
-              {emoji}
-            </Button>
-          ))}
-        </div>
-
-        {/* Message input */}
-        <div className="flex items-center space-x-2">
-          <div className="flex-1 relative">
-            <Input
-              placeholder="Type a message..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="pr-20"
-            />
-            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex space-x-1">
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                <Smile className="w-4 h-4 text-gray-400" />
-              </Button>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                <Image className="w-4 h-4 text-gray-400" />
-              </Button>
-            </div>
-          </div>
-          <Button 
-            onClick={sendMessage}
-            size="sm"
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 30 }}
+            className="w-80 h-[450px] bg-white rounded-lg shadow-xl flex flex-col"
           >
-            <Send className="w-4 h-4" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+            <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-3 rounded-t-lg flex justify-between items-center">
+              <span className="font-semibold">Room Chat</span>
+              <button onClick={toggleChat}>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 p-3 overflow-y-auto space-y-3">
+              {messages.map((msg, idx) => (
+                <div key={idx} className={`flex ${msg.sender === username ? 'justify-end' : 'justify-start'}`}>
+                  <div
+                    className={`px-3 py-2 bg-pink-500 rounded-lg max-w-[80%] text-sm ${
+                      msg.sender === username
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-200 text-gray-800'
+                    }`}
+                  >
+                    <p className="text-xs font-semibold mb-1">{msg.sender}</p>
+                    <ReactMarkdown>{msg.text}</ReactMarkdown>
+                  </div>
+                </div>
+              ))}
+              <div ref={bottomRef} />
+            </div>
+
+            <div className="p-2 border-t flex">
+              <input
+                type="text"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && sendMessage()}
+                className="flex-1 border rounded-l px-3 py-2 text-sm outline-none"
+                placeholder="Send a message..."
+              />
+              <button
+                onClick={sendMessage}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-r text-sm"
+              >
+                Send
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
+
+export default ChatInterface;

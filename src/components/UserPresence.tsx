@@ -4,6 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Users, UserPlus, Crown, Eye } from 'lucide-react';
+import { useAppContext } from '@/context/AppContext';
+import { useNavigate } from 'react-router-dom';
+import { socket } from '@/lib/socket';
+import axios from 'axios';
 
 interface UserPresenceProps {
   roomId: string;
@@ -40,6 +44,32 @@ export const UserPresence = ({ roomId }: UserPresenceProps) => {
     }
   ];
 
+  const navigate = useNavigate();
+  const isHost = localStorage.getItem('isHost') === 'true';
+  const roomCode = localStorage.getItem('roomCode');
+  const username = localStorage.getItem('username') || '';
+  const {setRoomCode, setSharedCart} = useAppContext();
+
+  const leaveRoom = () => {
+    socket.emit('leave-room', { roomCode, username });
+    socket.disconnect();
+    localStorage.removeItem('roomCode');
+    setRoomCode(null);
+    setSharedCart([]);
+    navigate('/');
+  };
+
+  const endRoom = async () => {
+    try {
+      await axios.post(`${import.meta.env.VITE_PUBLIC_BASEURL}/api/rooms/end`, { roomCode });
+      socket.emit('end-room', roomCode);
+    } catch (err) {
+      console.error('Failed to end room', err);
+    } finally {
+      leaveRoom();
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'online': return 'bg-green-500';
@@ -56,18 +86,34 @@ export const UserPresence = ({ roomId }: UserPresenceProps) => {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Users className="w-5 h-5" />
-            <span>Room: {roomId}</span>
+            <span className='text-lg'>Room: {roomId}</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between mb-4">
             <Badge variant="secondary" className="bg-green-100 text-green-700">
-              {users.length} members active
+              {users.length} active
             </Badge>
             <Button variant="outline" size="sm">
               <UserPlus className="w-4 h-4 mr-2" />
               Invite
             </Button>
+          </div>
+          <div className="space-y-2">
+            {isHost && (
+              <button
+                onClick={endRoom}
+                className="bg-red-600 text-white px-3 py-1 rounded"
+              >
+                End Room
+              </button>
+            )}
+            <button
+              onClick={leaveRoom}
+              className="bg-gray-300 px-3 py-1 rounded"
+            >
+              Leave Room
+            </button>
           </div>
         </CardContent>
       </Card>
@@ -94,10 +140,7 @@ export const UserPresence = ({ roomId }: UserPresenceProps) => {
               
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2">
-                  <h4 className="font-medium text-sm">{user.name}</h4>
-                  {user.isHost && (
-                    <Badge variant="secondary" className="text-xs">Host</Badge>
-                  )}
+                  <h4 className="font-medium text-xs">{user.name}</h4>
                 </div>
                 <div className="flex items-center space-x-1 text-xs text-gray-500">
                   <Eye className="w-3 h-3" />

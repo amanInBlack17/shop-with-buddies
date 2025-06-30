@@ -11,9 +11,9 @@ import { CartItem } from '@/pages/Index';
 
 interface ShoppingCartProps {
   cartItems: CartItem[];
-  onUpdateQuantity: (productId: number, quantity: number) => void;
+  onUpdateQuantity: (productId: string, quantity: number) => void;
   onAddToWishlist: (product: CartItem) => void;
-  isInWishlist: (productId: number) => boolean;
+  isInWishlist: (productId: string) => boolean;
 }
 
 export const ShoppingCart = ({ 

@@ -1,26 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ShoppingHeader } from '@/components/ShoppingHeader';
 import { ShoppingRoom } from '@/components/ShoppingRoom';
 import { ProductGrid } from '@/components/ProductGrid';
 import { SharedWishlist } from '@/components/SharedWishlist';
-import { ChatPanel } from '@/components/ChatPanel';
+import ChatInterface  from '@/components/ChatPanel';
 import { UserPresence } from '@/components/UserPresence';
 import { ShoppingCart } from '@/components/ShoppingCart';
 import { OrderHistory } from '@/components/OrderHistory';
 import { VideoCallPanel } from '@/components/VideoCallPanel';
+import { useAppContext } from '@/context/AppContext.jsx';
 
 export interface Product {
-  id: number;
-  name: string;
-  price: number;
+  id: string;
+  title: string;
   image: string;
-  rating: number;
-  reviews: number;
-  store: string;
+  price: number;
   category: string;
-  originalPrice?: number;
-  discount?: number;
-  inStock: boolean;
+  stock: number;
   description: string;
 }
 
@@ -29,11 +25,11 @@ export interface CartItem extends Product {
 }
 
 const Index = () => {
-  const [activeRoom, setActiveRoom] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [activeTab, setActiveTab] = useState<'browse' | 'cart' | 'orders' | 'wishlist'>('browse');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
+  const { sharedCart, username, roomCode, setRoomCode } = useAppContext();
 
   const addToCart = (product: Product, quantity: number = 1) => {
     setCartItems(prev => {
@@ -49,7 +45,7 @@ const Index = () => {
     });
   };
 
-  const updateCartQuantity = (productId: number, quantity: number) => {
+  const updateCartQuantity = (productId: string, quantity: number) => {
     if (quantity <= 0) {
       setCartItems(prev => prev.filter(item => item.id !== productId));
     } else {
@@ -70,7 +66,7 @@ const Index = () => {
     });
   };
 
-  const isInWishlist = (productId: number) => {
+  const isInWishlist = (productId: string) => {
     return wishlistItems.some(item => item.id === productId);
   };
 
@@ -85,7 +81,7 @@ const Index = () => {
       <div className="container mx-auto px-4 py-6">
         {activeTab === 'browse' && (
           <>
-            {!activeRoom ? (
+            {!localStorage.getItem('roomCode') ? (
               <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-8">
                   <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
@@ -94,7 +90,7 @@ const Index = () => {
                   <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-6">
                     Experience the joy of shopping with friends in real-time, or browse solo
                   </p>
-                  <ShoppingRoom onJoinRoom={setActiveRoom} />
+                  <ShoppingRoom />
                 </div>
                 
                 <ProductGrid 
@@ -106,20 +102,20 @@ const Index = () => {
                 />
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 h-[calc(100vh-140px)]">
-                <div className="lg:col-span-1 space-y-4">
-                  <UserPresence roomId={activeRoom} />
-                  <VideoCallPanel roomId={activeRoom} />
-                  <SharedWishlist 
+              <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 ">
+                <div className="lg:col-span-1 space-y-4">  
+                  <UserPresence roomId={localStorage.getItem('roomCode')} />
+                  <VideoCallPanel roomId={localStorage.getItem('roomCode')} />
+                  {/* <SharedWishlist 
                     wishlistItems={wishlistItems}
                     onAddToCart={addToCart}
                     onRemoveFromWishlist={(productId) => 
                       setWishlistItems(prev => prev.filter(item => item.id !== productId))
                     }
-                  />
+                  /> */}
                 </div>
                 
-                <div className="lg:col-span-4">
+                <div className="lg:col-span-5">
                   <ProductGrid 
                     onProductSelect={setSelectedProduct}
                     selectedProduct={selectedProduct}
@@ -130,9 +126,9 @@ const Index = () => {
                   />
                 </div>
                 
-                <div className="lg:col-span-1">
-                  <ChatPanel roomId={activeRoom} />
-                </div>
+                {/* <div className="lg:col-span-1">
+                  <ChatPanel roomId={roomCode} />
+                </div> */}
               </div>
             )}
           </>
@@ -160,6 +156,8 @@ const Index = () => {
           />
         )}
       </div>
+
+      {localStorage.getItem('roomCode') ? <ChatInterface /> : null}
     </div>
   );
 };

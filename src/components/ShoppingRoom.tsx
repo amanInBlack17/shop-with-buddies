@@ -7,15 +7,22 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Users, Plus, Copy, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import axios from 'axios';
+import { useAppContext } from "@/context/AppContext";
+import { socket } from "@/lib/socket";
+import { useNavigate } from "react-router-dom";
+
+
 
 interface ShoppingRoomProps {
   onJoinRoom: (roomId: string) => void;
 }
 
-export const ShoppingRoom = ({ onJoinRoom }: ShoppingRoomProps) => {
-  const [roomCode, setRoomCode] = useState('');
+export const ShoppingRoom = () => {
   const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { roomCode, setRoomCode } = useAppContext();
 
   const mockActiveRooms = [
     { id: 'room1', name: 'Weekend Shopping', members: 3, host: 'Sarah M.', activity: 'Electronics' },
@@ -23,25 +30,59 @@ export const ShoppingRoom = ({ onJoinRoom }: ShoppingRoomProps) => {
     { id: 'room3', name: 'Home Decor Hunt', members: 2, host: 'Lisa K.', activity: 'Home & Garden' },
   ];
 
-  const createRoom = () => {
-    setIsCreating(true);
-    setTimeout(() => {
-      const newRoomId = 'room_' + Math.random().toString(36).substr(2, 9);
-      setIsCreating(false);
-      onJoinRoom(newRoomId);
-      toast({
-        title: "Room Created!",
-        description: "Your shopping room is ready. Share the link with friends!",
+  const createRoom = async (username: string) => {
+    if (!username) return alert("Please enter a username!");
+    try {
+      setIsCreating(true);
+      const response = await axios.post(`${import.meta.env.VITE_PUBLIC_BASEURL}/api/rooms/create`, {
+        username: username.trim()
       });
-    }, 1000);
+
+      const { roomCode } = response.data;
+      setRoomCode(roomCode);
+
+      // Optional: Save username in localStorage for later use
+      localStorage.setItem("username", username);
+      localStorage.setItem("roomCode", roomCode);
+
+      if (!socket.connected) socket.connect();
+      socket.emit("join-room", { roomCode, username: username.trim() });
+
+      // Redirect to the room
+      navigate(`/room/${roomCode}`);
+    } catch (error) {
+      console.error("Error creating room:", error);
+      toast({
+        title: "Error Creating Room",
+        description: "There was an issue creating the room. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsCreating(false);
+    }
   };
 
-  const joinRoom = (roomId: string) => {
-    onJoinRoom(roomId);
-    toast({
-      title: "Joined Room!",
-      description: "Welcome to the shopping session!",
-    });
+  const joinRoom = async (roomId: string) => {
+    try {
+      if (!localStorage.getItem("username")) {
+        return toast({ title: "Please login before joining", description: "Go to settings to set your username", variant: "destructive" });
+      } 
+
+      const res = await axios.get(`${import.meta.env.VITE_PUBLIC_BASEURL}/api/rooms/${roomId}`);
+      if (!res.data.roomCode) throw new Error();
+
+      // Proceed to join
+      socket.connect();
+      socket.emit("join-room", { roomCode: roomId, username: localStorage.getItem("username")});
+
+      localStorage.setItem("roomCode", roomId);
+      setRoomCode(roomId);
+      navigate(`/room/${roomId}`);
+
+      toast({ title: "Joined Room!", description: "Welcome!" });
+    } catch (err) {
+      toast({ title: "Invalid Room", description: "This room doesn't exist", variant: "destructive" });
+    }
   };
 
   const copyRoomLink = (roomId: string) => {
@@ -69,7 +110,7 @@ export const ShoppingRoom = ({ onJoinRoom }: ShoppingRoomProps) => {
               Start a new shopping session and invite friends to join you
             </p>
             <Button 
-              onClick={createRoom}
+              onClick={createRoom.bind(null, localStorage.getItem("username") || "Yaser" )}
               disabled={isCreating}
               className="w-full bg-white text-purple-600 hover:bg-gray-100"
             >

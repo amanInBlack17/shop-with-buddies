@@ -9,7 +9,7 @@ import { Product } from '@/pages/Index';
 interface SharedWishlistProps {
   wishlistItems?: Product[];
   onAddToCart?: (product: Product) => void;
-  onRemoveFromWishlist?: (productId: number) => void;
+  onRemoveFromWishlist?: (productId: string) => void;
   isFullPage?: boolean;
 }
 
