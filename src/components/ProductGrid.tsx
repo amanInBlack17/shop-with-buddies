@@ -1,10 +1,10 @@
-
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Heart, ShoppingCart, ThumbsUp, ThumbsDown, Star, Share, Filter, Grid, List } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Product } from '@/pages/Index';
@@ -31,6 +31,8 @@ export const ProductGrid = ({
   const [sortBy, setSortBy] = useState('relevance');
   const [filterCategory, setFilterCategory] = useState('all');
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(8);
   const { toast } = useToast();
 
   const mockProducts: Product[] = [
@@ -137,6 +139,110 @@ export const ProductGrid = ({
       category: "Electronics",
       inStock: true,
       description: "RGB backlit mechanical keyboard with customizable keys."
+    },
+    {
+      id: 9,
+      name: "Wireless Charging Pad",
+      price: 49.99,
+      originalPrice: 69.99,
+      discount: 29,
+      image: "/placeholder.svg",
+      rating: 4.2,
+      reviews: 423,
+      store: "TechStore",
+      category: "Electronics",
+      inStock: true,
+      description: "Fast wireless charging pad compatible with all Qi-enabled devices."
+    },
+    {
+      id: 10,
+      name: "Organic Skincare Set",
+      price: 89.99,
+      image: "/placeholder.svg",
+      rating: 4.9,
+      reviews: 156,
+      store: "BeautyNature",
+      category: "Beauty",
+      inStock: true,
+      description: "Complete organic skincare routine with natural ingredients."
+    },
+    {
+      id: 11,
+      name: "Smart Fitness Tracker",
+      price: 199.99,
+      originalPrice: 249.99,
+      discount: 20,
+      image: "/placeholder.svg",
+      rating: 4.4,
+      reviews: 892,
+      store: "FitnessPro",
+      category: "Fitness",
+      inStock: true,
+      description: "Advanced fitness tracker with heart rate monitoring and GPS."
+    },
+    {
+      id: 12,
+      name: "Artisan Coffee Beans",
+      price: 24.99,
+      image: "/placeholder.svg",
+      rating: 4.8,
+      reviews: 278,
+      store: "CoffeeRoasters",
+      category: "Food & Beverage",
+      inStock: true,
+      description: "Premium single-origin coffee beans, freshly roasted to perfection."
+    },
+    {
+      id: 13,
+      name: "Minimalist Desk Lamp",
+      price: 79.99,
+      image: "/placeholder.svg",
+      rating: 4.5,
+      reviews: 167,
+      store: "HomeDesign",
+      category: "Home & Garden",
+      inStock: true,
+      description: "Modern LED desk lamp with adjustable brightness and color temperature."
+    },
+    {
+      id: 14,
+      name: "Eco-Friendly Backpack",
+      price: 119.99,
+      originalPrice: 149.99,
+      discount: 20,
+      image: "/placeholder.svg",
+      rating: 4.6,
+      reviews: 334,
+      store: "EcoLife",
+      category: "Lifestyle",
+      inStock: true,
+      description: "Durable backpack made from recycled materials with laptop compartment."
+    },
+    {
+      id: 15,
+      name: "Ceramic Dinner Set",
+      price: 159.99,
+      image: "/placeholder.svg",
+      rating: 4.7,
+      reviews: 289,
+      store: "KitchenEssentials",
+      category: "Home & Garden",
+      inStock: true,
+      description: "Elegant 16-piece ceramic dinner set, dishwasher and microwave safe."
+    },
+    {
+      id: 16,
+      name: "Wireless Gaming Mouse",
+      price: 89.99,
+      originalPrice: 119.99,
+      discount: 25,
+      image: "/placeholder.svg",
+      rating: 4.3,
+      reviews: 445,
+      store: "GameHub",
+      category: "Electronics",
+      inStock: true,
+      description: "High-precision gaming mouse with customizable RGB lighting."
     }
   ];
 
@@ -158,6 +264,23 @@ export const ProductGrid = ({
         default: return 0;
       }
     });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentProducts = filteredProducts.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Scroll to top of products when page changes
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleFilterChange = (callback: () => void) => {
+    callback();
+    setCurrentPage(1);
+  };
 
   const handleReaction = (productId: number, type: 'like' | 'dislike') => {
     const key = `${productId}_${type}`;
@@ -195,7 +318,9 @@ export const ProductGrid = ({
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Products</h2>
-          <p className="text-gray-600">{filteredProducts.length} items found</p>
+          <p className="text-gray-600">
+            {filteredProducts.length} items found • Page {currentPage} of {totalPages}
+          </p>
         </div>
         
         {isCollabMode && (
@@ -208,7 +333,7 @@ export const ProductGrid = ({
       {/* Filters and Controls */}
       <div className="flex flex-col lg:flex-row gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
         <div className="flex flex-col sm:flex-row gap-4 flex-1">
-          <Select value={filterCategory} onValueChange={setFilterCategory}>
+          <Select value={filterCategory} onValueChange={(value) => handleFilterChange(() => setFilterCategory(value))}>
             <SelectTrigger className="w-full sm:w-48">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
@@ -238,14 +363,14 @@ export const ProductGrid = ({
             <Input
               placeholder="Min price"
               value={priceRange.min}
-              onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
+              onChange={(e) => handleFilterChange(() => setPriceRange(prev => ({ ...prev, min: e.target.value })))}
               className="w-24"
               type="number"
             />
             <Input
               placeholder="Max price"
               value={priceRange.max}
-              onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
+              onChange={(e) => handleFilterChange(() => setPriceRange(prev => ({ ...prev, max: e.target.value })))}
               className="w-24"
               type="number"
             />
@@ -276,9 +401,9 @@ export const ProductGrid = ({
           ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6' 
           : 'space-y-4'
         } 
-        overflow-y-auto max-h-[calc(100vh-300px)]
+        mb-8
       `}>
-        {filteredProducts.map((product) => (
+        {currentProducts.map((product) => (
           <Card 
             key={product.id} 
             className={`
@@ -413,6 +538,105 @@ export const ProductGrid = ({
           </Card>
         ))}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage > 1) handlePageChange(currentPage - 1);
+                  }}
+                  className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+              
+              {/* First page */}
+              {currentPage > 3 && (
+                <>
+                  <PaginationItem>
+                    <PaginationLink 
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(1);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      1
+                    </PaginationLink>
+                  </PaginationItem>
+                  {currentPage > 4 && (
+                    <PaginationItem>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  )}
+                </>
+              )}
+
+              {/* Current page and neighbors */}
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const page = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
+                if (page > totalPages) return null;
+                
+                return (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(page);
+                      }}
+                      isActive={currentPage === page}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
+
+              {/* Last page */}
+              {currentPage < totalPages - 2 && (
+                <>
+                  {currentPage < totalPages - 3 && (
+                    <PaginationItem>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  )}
+                  <PaginationItem>
+                    <PaginationLink 
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(totalPages);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      {totalPages}
+                    </PaginationLink>
+                  </PaginationItem>
+                </>
+              )}
+
+              <PaginationItem>
+                <PaginationNext 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage < totalPages) handlePageChange(currentPage + 1);
+                  }}
+                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 };
