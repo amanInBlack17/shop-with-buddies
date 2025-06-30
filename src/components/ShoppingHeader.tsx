@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Bell, Search, ShoppingBag, Users, ShoppingCart, Package, Heart } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface ShoppingHeaderProps {
   cartItemsCount: number;
@@ -23,7 +24,7 @@ export const ShoppingHeader = ({ cartItemsCount, activeTab, onTabChange }: Shopp
   ];
 
   return (
-    <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+    <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -39,12 +40,12 @@ export const ShoppingHeader = ({ cartItemsCount, activeTab, onTabChange }: Shopp
           {/* Search bar - Hidden on mobile, shown on md+ */}
           <div className="hidden md:flex flex-1 max-w-2xl mx-8">
             <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
               <Input
                 placeholder="Search products, brands, or stores..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full rounded-full border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                className="pl-10 pr-4 py-2 w-full rounded-full border-gray-300 dark:border-gray-600 focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-800 dark:text-white"
               />
             </div>
           </div>
@@ -65,6 +66,8 @@ export const ShoppingHeader = ({ cartItemsCount, activeTab, onTabChange }: Shopp
               </Badge>
             </Button>
 
+            <ThemeToggle />
+
             <Avatar className="w-8 h-8">
               <AvatarImage src="/placeholder.svg" />
               <AvatarFallback className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm">
@@ -75,8 +78,8 @@ export const ShoppingHeader = ({ cartItemsCount, activeTab, onTabChange }: Shopp
         </div>
 
         {/* Navigation tabs */}
-        <div className="flex items-center justify-center mt-4 border-t pt-4">
-          <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+        <div className="flex items-center justify-center mt-4 border-t dark:border-gray-700 pt-4">
+          <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -87,8 +90,8 @@ export const ShoppingHeader = ({ cartItemsCount, activeTab, onTabChange }: Shopp
                   onClick={() => onTabChange(tab.id)}
                   className={`relative ${
                     activeTab === tab.id 
-                      ? "bg-white shadow-sm" 
-                      : "hover:bg-gray-200"
+                      ? "bg-white dark:bg-gray-700 shadow-sm" 
+                      : "hover:bg-gray-200 dark:hover:bg-gray-700"
                   }`}
                 >
                   <Icon className="w-4 h-4 mr-2" />
@@ -107,12 +110,12 @@ export const ShoppingHeader = ({ cartItemsCount, activeTab, onTabChange }: Shopp
         {/* Mobile search bar */}
         <div className="md:hidden mt-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
             <Input
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full rounded-full border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+              className="pl-10 pr-4 py-2 w-full rounded-full border-gray-300 dark:border-gray-600 focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-800 dark:text-white"
             />
           </div>
         </div>

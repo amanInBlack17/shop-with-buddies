@@ -75,7 +75,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-800">
       <ShoppingHeader 
         cartItemsCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
         activeTab={activeTab}
@@ -91,7 +91,7 @@ const Index = () => {
                   <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
                     Shop Together, Decide Together
                   </h1>
-                  <p className="text-lg md:text-xl text-gray-600 mb-6">
+                  <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-6">
                     Experience the joy of shopping with friends in real-time, or browse solo
                   </p>
                   <ShoppingRoom onJoinRoom={setActiveRoom} />
