@@ -313,25 +313,25 @@ export const ProductGrid = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 h-full">
+    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm p-4 md:p-6 h-full">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Products</h2>
-          <p className="text-gray-600">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Products</h2>
+          <p className="text-gray-600 dark:text-gray-300">
             {filteredProducts.length} items found • Page {currentPage} of {totalPages}
           </p>
         </div>
         
         {isCollabMode && (
-          <Badge variant="outline" className="text-green-600 border-green-600">
+          <Badge variant="outline" className="text-green-600 border-green-600 dark:text-green-400 dark:border-green-400">
             2 friends browsing
           </Badge>
         )}
       </div>
 
       {/* Filters and Controls */}
-      <div className="flex flex-col lg:flex-row gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+      <div className="flex flex-col lg:flex-row gap-4 mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
         <div className="flex flex-col sm:flex-row gap-4 flex-1">
           <Select value={filterCategory} onValueChange={(value) => handleFilterChange(() => setFilterCategory(value))}>
             <SelectTrigger className="w-full sm:w-48">
@@ -410,6 +410,7 @@ export const ProductGrid = ({
               hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02]
               ${viewMode === 'list' ? 'flex flex-row' : ''}
               ${!product.inStock ? 'opacity-75' : ''}
+              dark:bg-gray-800 dark:border-gray-700
             `}
             onClick={() => onProductSelect(product)}
           >
@@ -422,10 +423,10 @@ export const ProductGrid = ({
                     viewMode === 'list' ? 'w-full h-32' : 'w-full h-48'
                   }`}
                 />
-                <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-full p-2">
+                <div className="absolute top-2 right-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full p-2">
                   <Heart 
                     className={`w-4 h-4 transition-colors cursor-pointer ${
-                      isInWishlist(product.id) ? 'text-red-500 fill-red-500' : 'text-gray-600 hover:text-red-500'
+                      isInWishlist(product.id) ? 'text-red-500 fill-red-500' : 'text-gray-600 dark:text-gray-400 hover:text-red-500'
                     }`}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -447,12 +448,12 @@ export const ProductGrid = ({
 
               <div className={`space-y-3 ${viewMode === 'list' ? 'flex-1' : ''}`}>
                 <div>
-                  <h3 className="font-semibold text-lg text-gray-800 line-clamp-2">
+                  <h3 className="font-semibold text-lg text-gray-800 dark:text-white line-clamp-2">
                     {product.name}
                   </h3>
-                  <p className="text-sm text-gray-500">{product.store}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{product.store}</p>
                   {viewMode === 'list' && (
-                    <p className="text-sm text-gray-600 mt-2 line-clamp-2">{product.description}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-2">{product.description}</p>
                   )}
                 </div>
 
@@ -464,23 +465,23 @@ export const ProductGrid = ({
                         className={`w-4 h-4 ${
                           i < Math.floor(product.rating)
                             ? 'text-yellow-400 fill-yellow-400'
-                            : 'text-gray-300'
+                            : 'text-gray-300 dark:text-gray-600'
                         }`}
                       />
                     ))}
                   </div>
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-gray-600 dark:text-gray-300">
                     {product.rating} ({product.reviews})
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <span className="text-2xl font-bold text-gray-800">
+                    <span className="text-2xl font-bold text-gray-800 dark:text-white">
                       ${product.price}
                     </span>
                     {product.originalPrice && (
-                      <span className="text-lg text-gray-500 line-through">
+                      <span className="text-lg text-gray-500 dark:text-gray-400 line-through">
                         ${product.originalPrice}
                       </span>
                     )}
@@ -498,7 +499,7 @@ export const ProductGrid = ({
                           e.stopPropagation();
                           handleReaction(product.id, 'like');
                         }}
-                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                        className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20"
                       >
                         <ThumbsUp className="w-4 h-4 mr-1" />
                         {reactions[`${product.id}_like`] || 0}
@@ -510,7 +511,7 @@ export const ProductGrid = ({
                           e.stopPropagation();
                           handleReaction(product.id, 'dislike');
                         }}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
                       >
                         <ThumbsDown className="w-4 h-4 mr-1" />
                         {reactions[`${product.id}_dislike`] || 0}
@@ -539,11 +540,11 @@ export const ProductGrid = ({
         ))}
       </div>
 
-      {/* Pagination */}
+      {/* Pagination - Enhanced for dark mode */}
       {totalPages > 1 && (
-        <div className="flex justify-center">
+        <div className="flex justify-center mt-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
           <Pagination>
-            <PaginationContent>
+            <PaginationContent className="gap-2">
               <PaginationItem>
                 <PaginationPrevious 
                   href="#"
@@ -551,7 +552,13 @@ export const ProductGrid = ({
                     e.preventDefault();
                     if (currentPage > 1) handlePageChange(currentPage - 1);
                   }}
-                  className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  className={`
+                    transition-all duration-200 border border-gray-300 dark:border-gray-600
+                    ${currentPage === 1 
+                      ? 'pointer-events-none opacity-50 bg-gray-100 dark:bg-gray-700' 
+                      : 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200'
+                    }
+                  `}
                 />
               </PaginationItem>
               
@@ -565,14 +572,14 @@ export const ProductGrid = ({
                         e.preventDefault();
                         handlePageChange(1);
                       }}
-                      className="cursor-pointer"
+                      className="cursor-pointer border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
                     >
                       1
                     </PaginationLink>
                   </PaginationItem>
                   {currentPage > 4 && (
                     <PaginationItem>
-                      <PaginationEllipsis />
+                      <PaginationEllipsis className="text-gray-600 dark:text-gray-400" />
                     </PaginationItem>
                   )}
                 </>
@@ -592,7 +599,13 @@ export const ProductGrid = ({
                         handlePageChange(page);
                       }}
                       isActive={currentPage === page}
-                      className="cursor-pointer"
+                      className={`
+                        cursor-pointer border transition-all duration-200
+                        ${currentPage === page
+                          ? 'bg-purple-600 text-white border-purple-600 hover:bg-purple-700'
+                          : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        }
+                      `}
                     >
                       {page}
                     </PaginationLink>
@@ -605,7 +618,7 @@ export const ProductGrid = ({
                 <>
                   {currentPage < totalPages - 3 && (
                     <PaginationItem>
-                      <PaginationEllipsis />
+                      <PaginationEllipsis className="text-gray-600 dark:text-gray-400" />
                     </PaginationItem>
                   )}
                   <PaginationItem>
@@ -615,7 +628,7 @@ export const ProductGrid = ({
                         e.preventDefault();
                         handlePageChange(totalPages);
                       }}
-                      className="cursor-pointer"
+                      className="cursor-pointer border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
                     >
                       {totalPages}
                     </PaginationLink>
@@ -630,7 +643,13 @@ export const ProductGrid = ({
                     e.preventDefault();
                     if (currentPage < totalPages) handlePageChange(currentPage + 1);
                   }}
-                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  className={`
+                    transition-all duration-200 border border-gray-300 dark:border-gray-600
+                    ${currentPage === totalPages 
+                      ? 'pointer-events-none opacity-50 bg-gray-100 dark:bg-gray-700' 
+                      : 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200'
+                    }
+                  `}
                 />
               </PaginationItem>
             </PaginationContent>

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ShoppingHeader } from '@/components/ShoppingHeader';
 import { ShoppingRoom } from '@/components/ShoppingRoom';
@@ -8,6 +7,7 @@ import { ChatPanel } from '@/components/ChatPanel';
 import { UserPresence } from '@/components/UserPresence';
 import { ShoppingCart } from '@/components/ShoppingCart';
 import { OrderHistory } from '@/components/OrderHistory';
+import { VideoCallPanel } from '@/components/VideoCallPanel';
 
 export interface Product {
   id: number;
@@ -106,9 +106,10 @@ const Index = () => {
                 />
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-140px)]">
+              <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 h-[calc(100vh-140px)]">
                 <div className="lg:col-span-1 space-y-4">
                   <UserPresence roomId={activeRoom} />
+                  <VideoCallPanel roomId={activeRoom} />
                   <SharedWishlist 
                     wishlistItems={wishlistItems}
                     onAddToCart={addToCart}
@@ -118,7 +119,7 @@ const Index = () => {
                   />
                 </div>
                 
-                <div className="lg:col-span-2">
+                <div className="lg:col-span-4">
                   <ProductGrid 
                     onProductSelect={setSelectedProduct}
                     selectedProduct={selectedProduct}
