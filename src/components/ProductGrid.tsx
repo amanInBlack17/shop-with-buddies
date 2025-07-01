@@ -19,6 +19,60 @@ interface ProductGridProps {
   isCollabMode?: boolean;
 }
 
+// Fallback mock products in case API fails
+const fallbackProducts: Product[] = [
+  {
+    id: '1',
+    name: 'Wireless Bluetooth Headphones',
+    title: 'Wireless Bluetooth Headphones',
+    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e',
+    price: 79.99,
+    originalPrice: 99.99,
+    category: 'Electronics',
+    stock: 25,
+    inStock: true,
+    description: 'High-quality wireless headphones with noise cancellation',
+    store: 'TechStore'
+  },
+  {
+    id: '2',
+    name: 'Smartphone Case',
+    title: 'Smartphone Case',
+    image: 'https://images.unsplash.com/photo-1556656793-08538906a9f8',
+    price: 24.99,
+    category: 'Accessories',
+    stock: 50,
+    inStock: true,
+    description: 'Durable protection for your smartphone',
+    store: 'AccessoryHub'
+  },
+  {
+    id: '3',
+    name: 'Running Shoes',
+    title: 'Running Shoes',
+    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff',
+    price: 129.99,
+    originalPrice: 159.99,
+    category: 'Sports',
+    stock: 15,
+    inStock: true,
+    description: 'Comfortable running shoes for all terrains',
+    store: 'SportZone'
+  },
+  {
+    id: '4',
+    name: 'Coffee Maker',
+    title: 'Coffee Maker',
+    image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e',
+    price: 89.99,
+    category: 'Home',
+    stock: 8,
+    inStock: true,
+    description: 'Automatic coffee maker with timer',
+    store: 'HomeGoods'
+  }
+];
+
 export const ProductGrid = ({ 
   onProductSelect, 
   selectedProduct, 
@@ -34,30 +88,48 @@ export const ProductGrid = ({
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8);
+  const [mockProducts, setMockProducts] = useState<Product[]>(fallbackProducts);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  
-
-  //fetching the mock products from api
-  const [mockProducts, setMockProducts] = useState<Product[]>([]);
 
   const fetchProducts = async () => {
+    // Only try to fetch from API if VITE_PUBLIC_BASEURL is defined
+    if (!import.meta.env.VITE_PUBLIC_BASEURL) {
+      console.log('Using fallback products - no API endpoint configured');
+      setMockProducts(fallbackProducts);
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const response = await axios.get(`${import.meta.env.VITE_PUBLIC_BASEURL}/api/products`); // Adjust the endpoint as needed
-      setMockProducts(response.data);
+      const response = await axios.get(`${import.meta.env.VITE_PUBLIC_BASEURL}/api/products`);
+      
+      // Ensure response.data is an array
+      if (Array.isArray(response.data)) {
+        setMockProducts(response.data);
+      } else if (response.data && Array.isArray(response.data.products)) {
+        setMockProducts(response.data.products);
+      } else {
+        console.warn('API response is not in expected format, using fallback products');
+        setMockProducts(fallbackProducts);
+      }
     } catch (error) {
       console.error("Failed to fetch products:", error);
+      console.log('Using fallback products due to API error');
+      setMockProducts(fallbackProducts);
+      
       toast({
-        title: "Error",
-        description: "Failed to load products. Please try again later.",
-        variant: "destructive",
+        title: "Using Sample Data",
+        description: "Showing sample products. Connect to your backend to load real products.",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     fetchProducts();
   }, []);
-  
 
   const categories = ['all', ...Array.from(new Set(mockProducts.map(p => p.category)))];
 
@@ -122,6 +194,17 @@ export const ProductGrid = ({
       description: `${product.title} has been ${isAdding ? 'added to' : 'removed from'} your wishlist`,
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm p-4 md:p-6 h-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-300">Loading products...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm p-4 md:p-6 h-full">
@@ -257,7 +340,6 @@ export const ProductGrid = ({
                   <h3 className="font-semibold text-lg text-gray-800 dark:text-white line-clamp-2">
                     {product.title}
                   </h3>
-                  {/* <p className="text-sm text-gray-500 dark:text-gray-400">{product.store}</p> */}
                   {viewMode === 'list' && (
                     <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-2">{product.description}</p>
                   )}
