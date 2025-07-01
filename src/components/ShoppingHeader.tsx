@@ -1,11 +1,14 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Search, ShoppingBag, Users, ShoppingCart, Package, Heart } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, Package, Heart } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { SearchDropdown } from '@/components/SearchDropdown';
+import { NotificationDropdown } from '@/components/NotificationDropdown';
+import { ActiveUsersDropdown } from '@/components/ActiveUsersDropdown';
+import { UserProfileDropdown } from '@/components/UserProfileDropdown';
 
 interface ShoppingHeaderProps {
   cartItemsCount: number;
@@ -14,8 +17,6 @@ interface ShoppingHeaderProps {
 }
 
 export const ShoppingHeader = ({ cartItemsCount, activeTab, onTabChange }: ShoppingHeaderProps) => {
-  const [searchQuery, setSearchQuery] = useState('');
-
   const tabs = [
     { id: 'browse' as const, label: 'Browse', icon: ShoppingBag },
     { id: 'cart' as const, label: 'Cart', icon: ShoppingCart, badge: cartItemsCount },
@@ -45,41 +46,15 @@ export const ShoppingHeader = ({ cartItemsCount, activeTab, onTabChange }: Shopp
 
           {/* Search bar - Hidden on mobile, shown on md+ */}
           <div className="hidden md:flex flex-1 max-w-2xl mx-8">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
-              <Input
-                placeholder="Search products, brands, or stores..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full rounded-full border-gray-300 dark:border-gray-600 focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-800 dark:text-white"
-              />
-            </div>
+            <SearchDropdown className="w-full" />
           </div>
 
           {/* Right section */}
           <div className="flex items-center space-x-2 md:space-x-4">
-            <Button variant="ghost" size="sm" className="relative">
-              <Bell className="w-5 h-5" />
-              <Badge className="absolute -top-1 -right-1 w-4 h-4 p-0 text-xs bg-red-500">
-                3
-              </Badge>
-            </Button>
-            
-            <Button variant="ghost" size="sm" className="relative">
-              <Users className="w-5 h-5" />
-              <Badge className="absolute -top-1 -right-1 w-4 h-4 p-0 text-xs bg-green-500">
-                2
-              </Badge>
-            </Button>
-
+            <NotificationDropdown />
+            <ActiveUsersDropdown />
             <ThemeToggle />
-
-            <Avatar className="w-8 h-8">
-              <AvatarImage src="/placeholder.svg" />
-              <AvatarFallback className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm">
-                JD
-              </AvatarFallback>
-            </Avatar>
+            <UserProfileDropdown />
           </div>
         </div>
 
@@ -138,15 +113,7 @@ export const ShoppingHeader = ({ cartItemsCount, activeTab, onTabChange }: Shopp
 
         {/* Mobile search bar */}
         <div className="md:hidden mt-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
-            <Input
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full rounded-full border-gray-300 dark:border-gray-600 focus:border-purple-500 focus:ring-purple-500 dark:bg-gray-800 dark:text-white"
-            />
-          </div>
+          <SearchDropdown placeholder="Search products..." />
         </div>
       </div>
     </header>

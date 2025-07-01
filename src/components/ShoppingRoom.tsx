@@ -5,18 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Users, Plus, Copy, ExternalLink } from 'lucide-react';
+import { Users, Plus, Copy, ExternalLink, UserPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { InviteModal } from '@/components/InviteModal';
 import axios from 'axios';
 import { useAppContext } from "@/context/AppContext";
 import { socket } from "@/lib/socket";
 import { useNavigate } from "react-router-dom";
-
-
-
-interface ShoppingRoomProps {
-  onJoinRoom: (roomId: string) => void;
-}
 
 export const ShoppingRoom = () => {
   const [isCreating, setIsCreating] = useState(false);
@@ -152,29 +147,29 @@ export const ShoppingRoom = () => {
 
       {/* Active Rooms */}
       <div>
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">Active Shopping Rooms</h2>
+        <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white">Active Shopping Rooms</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {mockActiveRooms.map((room) => (
             <Card key={room.id} className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-lg">{room.name}</h3>
-                  <Badge variant="secondary" className="bg-green-100 text-green-700">
+                  <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200">
                     {room.activity}
                   </Badge>
                 </div>
                 
                 <div className="flex items-center space-x-2 mb-4">
                   <Avatar className="w-6 h-6">
-                    <AvatarFallback className="text-xs bg-gray-200">
+                    <AvatarFallback className="text-xs bg-gray-200 dark:bg-gray-700">
                       {room.host.split(' ').map(n => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-sm text-gray-600">Hosted by {room.host}</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Hosted by {room.host}</span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-1 text-sm text-gray-500">
+                  <div className="flex items-center space-x-1 text-sm text-gray-500 dark:text-gray-400">
                     <Users className="w-4 h-4" />
                     <span>{room.members} members</span>
                   </div>
@@ -187,6 +182,11 @@ export const ShoppingRoom = () => {
                     >
                       <Copy className="w-4 h-4" />
                     </Button>
+                    <InviteModal roomCode={room.id}>
+                      <Button variant="ghost" size="sm">
+                        <UserPlus className="w-4 h-4" />
+                      </Button>
+                    </InviteModal>
                     <Button
                       size="sm"
                       onClick={() => joinRoom(room.id)}

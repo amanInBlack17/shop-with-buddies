@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Users, UserPlus, Crown, Eye } from 'lucide-react';
+import { InviteModal } from '@/components/InviteModal';
 import { useAppContext } from '@/context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { socket } from '@/lib/socket';
@@ -91,26 +92,28 @@ export const UserPresence = ({ roomId }: UserPresenceProps) => {
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between mb-4">
-            <Badge variant="secondary" className="bg-green-100 text-green-700">
+            <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200">
               {users.length} active
             </Badge>
-            <Button variant="outline" size="sm">
-              <UserPlus className="w-4 h-4 mr-2" />
-              Invite
-            </Button>
+            <InviteModal roomCode={roomId}>
+              <Button variant="outline" size="sm">
+                <UserPlus className="w-4 h-4 mr-2" />
+                Invite
+              </Button>
+            </InviteModal>
           </div>
           <div className="space-y-2">
             {isHost && (
               <button
                 onClick={endRoom}
-                className="bg-red-600 text-white px-3 py-1 rounded"
+                className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition-colors"
               >
                 End Room
               </button>
             )}
             <button
               onClick={leaveRoom}
-              className="bg-gray-300 px-3 py-1 rounded"
+              className="bg-gray-300 dark:bg-gray-600 px-3 py-1 rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
             >
               Leave Room
             </button>
@@ -125,14 +128,14 @@ export const UserPresence = ({ roomId }: UserPresenceProps) => {
         </CardHeader>
         <CardContent className="space-y-3">
           {users.map((user) => (
-            <div key={user.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+            <div key={user.id} className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
               <div className="relative">
                 <Avatar className="w-10 h-10">
                   <AvatarFallback className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
                     {user.initials}
                   </AvatarFallback>
                 </Avatar>
-                <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${getStatusColor(user.status)}`} />
+                <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white dark:border-gray-800 ${getStatusColor(user.status)}`} />
                 {user.isHost && (
                   <Crown className="absolute -top-1 -right-1 w-4 h-4 text-yellow-500 fill-yellow-500" />
                 )}
@@ -142,7 +145,7 @@ export const UserPresence = ({ roomId }: UserPresenceProps) => {
                 <div className="flex items-center space-x-2">
                   <h4 className="font-medium text-xs">{user.name}</h4>
                 </div>
-                <div className="flex items-center space-x-1 text-xs text-gray-500">
+                <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
                   <Eye className="w-3 h-3" />
                   <span>{user.activity}</span>
                 </div>
@@ -158,7 +161,7 @@ export const UserPresence = ({ roomId }: UserPresenceProps) => {
           <CardTitle>Live Activity</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="relative bg-gray-100 rounded-lg h-32 overflow-hidden">
+          <div className="relative bg-gray-100 dark:bg-gray-800 rounded-lg h-32 overflow-hidden">
             {users.map((user) => (
               <div
                 key={user.id}
@@ -171,7 +174,7 @@ export const UserPresence = ({ roomId }: UserPresenceProps) => {
                 title={user.name}
               />
             ))}
-            <div className="absolute inset-0 flex items-center justify-center text-xs text-gray-500">
+            <div className="absolute inset-0 flex items-center justify-center text-xs text-gray-500 dark:text-gray-400">
               Live cursors on shared screen
             </div>
           </div>
