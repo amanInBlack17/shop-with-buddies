@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -81,6 +82,7 @@ export const ProductGrid = ({
   isInWishlist,
   isCollabMode = false
 }: ProductGridProps) => {
+  const navigate = useNavigate();
   const [reactions, setReactions] = useState<{[key: string]: number}>({});
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('relevance');
@@ -156,13 +158,17 @@ export const ProductGrid = ({
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    // Scroll to top of products when page changes
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleFilterChange = (callback: () => void) => {
     callback();
     setCurrentPage(1);
+  };
+
+  const handleProductClick = (product: Product) => {
+    onProductSelect(product);
+    navigate(`/product/${product.id}`);
   };
 
   const handleReaction = (productId: string, type: 'like' | 'dislike') => {
@@ -306,7 +312,7 @@ export const ProductGrid = ({
               ${!product.stock ? 'opacity-75' : ''}
               dark:bg-gray-800 dark:border-gray-700
             `}
-            onClick={() => onProductSelect(product)}
+            onClick={() => handleProductClick(product)}
           >
             <CardContent className={`p-4 ${viewMode === 'list' ? 'flex flex-row w-full' : ''}`}>
               <div className={`relative mb-4 ${viewMode === 'list' ? 'w-48 mr-4 mb-0' : ''}`}>
@@ -350,6 +356,9 @@ export const ProductGrid = ({
                     <span className="text-2xl font-bold text-gray-800 dark:text-white">
                       ${product.price}
                     </span>
+                    {product.originalPrice && (
+                      <span className="text-sm text-gray-500 line-through">${product.originalPrice}</span>
+                    )}
                   </div>
                   <Badge variant="secondary">{product.category}</Badge>
                 </div>
@@ -405,7 +414,7 @@ export const ProductGrid = ({
         ))}
       </div>
 
-      {/* Pagination - Enhanced for dark mode */}
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center mt-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
           <Pagination>
