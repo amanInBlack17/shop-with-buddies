@@ -31,7 +31,7 @@ export const SharedWishlist = ({
     }
   };
 
-  const handleRemoveFromWishlist = (productId: number) => {
+  const handleRemoveFromWishlist = (productId: string) => {
     if (onRemoveFromWishlist) {
       onRemoveFromWishlist(productId);
       toast({

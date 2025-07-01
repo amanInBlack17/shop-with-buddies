@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { ShoppingHeader } from '@/components/ShoppingHeader';
 import { ShoppingRoom } from '@/components/ShoppingRoom';
@@ -12,12 +13,16 @@ import { useAppContext } from '@/context/AppContext.jsx';
 
 export interface Product {
   id: string;
+  name: string;
   title: string;
   image: string;
   price: number;
+  originalPrice?: number;
   category: string;
   stock: number;
+  inStock: boolean;
   description: string;
+  store: string;
 }
 
 export interface CartItem extends Product {
