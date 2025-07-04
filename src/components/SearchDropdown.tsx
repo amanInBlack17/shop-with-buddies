@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Search, Smartphone, Laptop, Headphones, Camera, Watch, TrendingUp, Package } from 'lucide-react';
+import axios from 'axios';
 
 interface Product {
   id: string;
@@ -25,11 +26,65 @@ interface SearchDropdownProps {
   className?: string;
 }
 
+// Same fallback products as ProductGrid
+const fallbackProducts: Product[] = [
+  {
+    id: '1',
+    name: 'Wireless Bluetooth Headphones',
+    title: 'Wireless Bluetooth Headphones',
+    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e',
+    price: 79.99,
+    originalPrice: 99.99,
+    category: 'Electronics',
+    stock: 25,
+    inStock: true,
+    description: 'High-quality wireless headphones with noise cancellation',
+    store: 'TechStore'
+  },
+  {
+    id: '2',
+    name: 'Smartphone Case',
+    title: 'Smartphone Case',
+    image: 'https://images.unsplash.com/photo-1556656793-08538906a9f8',
+    price: 24.99,
+    category: 'Accessories',
+    stock: 50,
+    inStock: true,
+    description: 'Durable protection for your smartphone',
+    store: 'AccessoryHub'
+  },
+  {
+    id: '3',
+    name: 'Running Shoes',
+    title: 'Running Shoes',
+    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff',
+    price: 129.99,
+    originalPrice: 159.99,
+    category: 'Sports',
+    stock: 15,
+    inStock: true,
+    description: 'Comfortable running shoes for all terrains',
+    store: 'SportZone'
+  },
+  {
+    id: '4',
+    name: 'Coffee Maker',
+    title: 'Coffee Maker',
+    image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e',
+    price: 89.99,
+    category: 'Home',
+    stock: 8,
+    inStock: true,
+    description: 'Automatic coffee maker with timer',
+    store: 'HomeGoods'
+  }
+];
+
 export const SearchDropdown = ({ placeholder = "Search products, brands, or stores...", className }: SearchDropdownProps) => {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>(fallbackProducts);
   const [filteredResults, setFilteredResults] = useState({
     products: [],
     brands: [],
@@ -38,62 +93,37 @@ export const SearchDropdown = ({ placeholder = "Search products, brands, or stor
   });
   const searchRef = useRef<HTMLDivElement>(null);
 
+  // Use same fetch logic as ProductGrid
+  const fetchProducts = async () => {
+    // Only try to fetch from API if VITE_PUBLIC_BASEURL is defined
+    if (!import.meta.env.VITE_PUBLIC_BASEURL) {
+      console.log('Using fallback products - no API endpoint configured');
+      setProducts(fallbackProducts);
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_PUBLIC_BASEURL}/api/products`);
+      
+      // Ensure response.data is an array
+      if (Array.isArray(response.data)) {
+        setProducts(response.data);
+      } else if (response.data && Array.isArray(response.data.products)) {
+        setProducts(response.data.products);
+      } else {
+        console.warn('API response is not in expected format, using fallback products');
+        setProducts(fallbackProducts);
+      }
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+      console.log('Using fallback products due to API error');
+      setProducts(fallbackProducts);
+    }
+  };
+
   // Load products data
   useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        const response = await fetch('https://fakestoreapi.com/products');
-        const apiProducts = await response.json();
-        
-        if (Array.isArray(apiProducts)) {
-          const formattedProducts = apiProducts.map((product: any) => ({
-            id: product.id.toString(),
-            name: product.title,
-            title: product.title,
-            image: product.image,
-            price: product.price,
-            category: product.category,
-            stock: Math.floor(Math.random() * 50) + 1,
-            inStock: true,
-            description: product.description,
-            store: `Store ${Math.floor(Math.random() * 10) + 1}`
-          }));
-          setProducts(formattedProducts);
-        }
-      } catch (error) {
-        console.error('Failed to load products:', error);
-        // Fallback to mock data
-        const mockProducts = [
-          {
-            id: '1',
-            name: 'iPhone 15 Pro',
-            title: 'iPhone 15 Pro',
-            image: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=300',
-            price: 999,
-            category: 'electronics',
-            stock: 15,
-            inStock: true,
-            description: 'Latest iPhone with advanced features',
-            store: 'Apple Store'
-          },
-          {
-            id: '2',
-            name: 'MacBook Pro M3',
-            title: 'MacBook Pro M3',
-            image: 'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=300',
-            price: 1999,
-            category: 'electronics',
-            stock: 8,
-            inStock: true,
-            description: 'Powerful laptop for professionals',
-            store: 'Apple Store'
-          }
-        ];
-        setProducts(mockProducts);
-      }
-    };
-
-    loadProducts();
+    fetchProducts();
   }, []);
 
   useEffect(() => {
@@ -115,6 +145,7 @@ export const SearchDropdown = ({ placeholder = "Search products, brands, or stor
       const filteredProducts = products.filter(
         product => 
           product.name.toLowerCase().includes(searchTerm) ||
+          product.title.toLowerCase().includes(searchTerm) ||
           product.category.toLowerCase().includes(searchTerm) ||
           product.description.toLowerCase().includes(searchTerm)
       ).slice(0, 5);
@@ -225,7 +256,7 @@ export const SearchDropdown = ({ placeholder = "Search products, brands, or stor
                           className="w-10 h-10 object-cover rounded"
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate dark:text-white">{product.name}</p>
+                          <p className="font-medium text-sm truncate dark:text-white">{product.title}</p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">{product.category}</p>
                         </div>
                         <span className="text-sm font-medium text-purple-600 dark:text-purple-400">${product.price}</span>
