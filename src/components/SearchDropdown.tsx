@@ -1,9 +1,24 @@
 
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, Smartphone, Laptop, Headphones, Camera, Watch, TrendingUp } from 'lucide-react';
+import { Search, Smartphone, Laptop, Headphones, Camera, Watch, TrendingUp, Package } from 'lucide-react';
+
+interface Product {
+  id: string;
+  name: string;
+  title: string;
+  image: string;
+  price: number;
+  originalPrice?: number;
+  category: string;
+  stock: number;
+  inStock: boolean;
+  description: string;
+  store: string;
+}
 
 interface SearchDropdownProps {
   placeholder?: string;
@@ -11,47 +26,75 @@ interface SearchDropdownProps {
 }
 
 export const SearchDropdown = ({ placeholder = "Search products, brands, or stores...", className }: SearchDropdownProps) => {
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
-  const [suggestions, setSuggestions] = useState({
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredResults, setFilteredResults] = useState({
     products: [],
     brands: [],
     categories: [],
-    trending: []
+    stores: []
   });
   const searchRef = useRef<HTMLDivElement>(null);
 
-  // Mock data for suggestions
-  const mockSuggestions = {
-    products: [
-      { id: 1, name: 'iPhone 15 Pro', category: 'Smartphones', price: 999, icon: Smartphone },
-      { id: 2, name: 'MacBook Pro M3', category: 'Laptops', price: 1999, icon: Laptop },
-      { id: 3, name: 'AirPods Pro', category: 'Audio', price: 249, icon: Headphones },
-      { id: 4, name: 'Canon EOS R5', category: 'Cameras', price: 3899, icon: Camera },
-      { id: 5, name: 'Apple Watch Series 9', category: 'Wearables', price: 399, icon: Watch }
-    ],
-    brands: [
-      { name: 'Apple', count: 1234 },
-      { name: 'Samsung', count: 987 },
-      { name: 'Sony', count: 756 },
-      { name: 'Nike', count: 543 },
-      { name: 'Adidas', count: 432 }
-    ],
-    categories: [
-      { name: 'Electronics', count: 15420 },
-      { name: 'Fashion', count: 12800 },
-      { name: 'Home & Garden', count: 9650 },
-      { name: 'Sports & Outdoors', count: 7320 },
-      { name: 'Books', count: 5890 }
-    ],
-    trending: [
-      'wireless headphones',
-      'smart watches',
-      'gaming laptops',
-      'wireless chargers',
-      'bluetooth speakers'
-    ]
-  };
+  // Load products data
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const response = await fetch('https://fakestoreapi.com/products');
+        const apiProducts = await response.json();
+        
+        if (Array.isArray(apiProducts)) {
+          const formattedProducts = apiProducts.map((product: any) => ({
+            id: product.id.toString(),
+            name: product.title,
+            title: product.title,
+            image: product.image,
+            price: product.price,
+            category: product.category,
+            stock: Math.floor(Math.random() * 50) + 1,
+            inStock: true,
+            description: product.description,
+            store: `Store ${Math.floor(Math.random() * 10) + 1}`
+          }));
+          setProducts(formattedProducts);
+        }
+      } catch (error) {
+        console.error('Failed to load products:', error);
+        // Fallback to mock data
+        const mockProducts = [
+          {
+            id: '1',
+            name: 'iPhone 15 Pro',
+            title: 'iPhone 15 Pro',
+            image: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=300',
+            price: 999,
+            category: 'electronics',
+            stock: 15,
+            inStock: true,
+            description: 'Latest iPhone with advanced features',
+            store: 'Apple Store'
+          },
+          {
+            id: '2',
+            name: 'MacBook Pro M3',
+            title: 'MacBook Pro M3',
+            image: 'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=300',
+            price: 1999,
+            category: 'electronics',
+            stock: 8,
+            inStock: true,
+            description: 'Powerful laptop for professionals',
+            store: 'Apple Store'
+          }
+        ];
+        setProducts(mockProducts);
+      }
+    };
+
+    loadProducts();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -66,45 +109,80 @@ export const SearchDropdown = ({ placeholder = "Search products, brands, or stor
 
   useEffect(() => {
     if (query.length > 0) {
-      // Filter suggestions based on query
-      const filteredProducts = mockSuggestions.products.filter(
-        product => product.name.toLowerCase().includes(query.toLowerCase())
-      );
-      const filteredBrands = mockSuggestions.brands.filter(
-        brand => brand.name.toLowerCase().includes(query.toLowerCase())
-      );
-      const filteredCategories = mockSuggestions.categories.filter(
-        category => category.name.toLowerCase().includes(query.toLowerCase())
-      );
+      const searchTerm = query.toLowerCase();
+      
+      // Filter products
+      const filteredProducts = products.filter(
+        product => 
+          product.name.toLowerCase().includes(searchTerm) ||
+          product.category.toLowerCase().includes(searchTerm) ||
+          product.description.toLowerCase().includes(searchTerm)
+      ).slice(0, 5);
 
-      setSuggestions({
-        products: filteredProducts.slice(0, 5),
-        brands: filteredBrands.slice(0, 3),
-        categories: filteredCategories.slice(0, 3),
-        trending: mockSuggestions.trending.filter(
-          trend => trend.toLowerCase().includes(query.toLowerCase())
-        ).slice(0, 3)
+      // Get unique brands (stores)
+      const allStores = [...new Set(products.map(p => p.store))];
+      const filteredBrands = allStores.filter(
+        store => store.toLowerCase().includes(searchTerm)
+      ).slice(0, 3);
+
+      // Get unique categories
+      const allCategories = [...new Set(products.map(p => p.category))];
+      const filteredCategories = allCategories.filter(
+        category => category.toLowerCase().includes(searchTerm)
+      ).slice(0, 3);
+
+      // Get unique stores
+      const filteredStores = allStores.filter(
+        store => store.toLowerCase().includes(searchTerm)
+      ).slice(0, 3);
+
+      setFilteredResults({
+        products: filteredProducts,
+        brands: filteredBrands.map(brand => ({ name: brand, count: products.filter(p => p.store === brand).length })),
+        categories: filteredCategories.map(cat => ({ name: cat, count: products.filter(p => p.category === cat).length })),
+        stores: filteredStores.map(store => ({ name: store, count: products.filter(p => p.store === store).length }))
       });
     } else {
-      setSuggestions({
-        products: mockSuggestions.products.slice(0, 5),
-        brands: mockSuggestions.brands.slice(0, 3),
-        categories: mockSuggestions.categories.slice(0, 3),
-        trending: mockSuggestions.trending.slice(0, 5)
+      // Show popular/trending results when no query
+      setFilteredResults({
+        products: products.slice(0, 5),
+        brands: [...new Set(products.map(p => p.store))].slice(0, 3).map(brand => ({ name: brand, count: products.filter(p => p.store === brand).length })),
+        categories: [...new Set(products.map(p => p.category))].slice(0, 3).map(cat => ({ name: cat, count: products.filter(p => p.category === cat).length })),
+        stores: [...new Set(products.map(p => p.store))].slice(0, 3).map(store => ({ name: store, count: products.filter(p => p.store === store).length }))
       });
     }
-  }, [query]);
+  }, [query, products]);
 
-  const handleSearch = (searchTerm: string) => {
-    console.log('Searching for:', searchTerm);
-    setQuery(searchTerm);
+  const handleProductClick = (product: Product) => {
+    navigate(`/product/${product.id}`);
+    setQuery('');
     setIsOpen(false);
   };
 
-  const hasResults = suggestions.products.length > 0 || 
-                   suggestions.brands.length > 0 || 
-                   suggestions.categories.length > 0 || 
-                   suggestions.trending.length > 0;
+  const handleBrandClick = (brandName: string) => {
+    setQuery(brandName);
+    setIsOpen(false);
+  };
+
+  const handleCategoryClick = (categoryName: string) => {
+    setQuery(categoryName);
+    setIsOpen(false);
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category.toLowerCase()) {
+      case 'electronics': return Smartphone;
+      case 'computers': return Laptop;
+      case 'audio': return Headphones;
+      case 'cameras': return Camera;
+      case 'wearables': return Watch;
+      default: return Package;
+    }
+  };
+
+  const hasResults = filteredResults.products.length > 0 || 
+                   filteredResults.brands.length > 0 || 
+                   filteredResults.categories.length > 0;
 
   return (
     <div ref={searchRef} className={`relative ${className}`}>
@@ -120,7 +198,7 @@ export const SearchDropdown = ({ placeholder = "Search products, brands, or stor
       </div>
 
       {isOpen && (
-        <Card className="absolute top-full left-0 right-0 mt-2 z-50 max-h-96 overflow-y-auto shadow-lg">
+        <Card className="absolute top-full left-0 right-0 mt-2 z-50 max-h-96 overflow-y-auto shadow-lg bg-white dark:bg-gray-800">
           <CardContent className="p-0">
             {!hasResults ? (
               <div className="p-4 text-center text-gray-500 dark:text-gray-400">
@@ -130,44 +208,45 @@ export const SearchDropdown = ({ placeholder = "Search products, brands, or stor
             ) : (
               <div className="space-y-1">
                 {/* Products */}
-                {suggestions.products.length > 0 && (
+                {filteredResults.products.length > 0 && (
                   <div>
-                    <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b">
+                    <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
                       <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300">Products</h4>
                     </div>
-                    {suggestions.products.map((product) => {
-                      const IconComponent = product.icon;
-                      return (
-                        <div
-                          key={product.id}
-                          onClick={() => handleSearch(product.name)}
-                          className="flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
-                        >
-                          <IconComponent className="w-5 h-5 text-gray-400" />
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{product.name}</p>
-                            <p className="text-xs text-gray-500">{product.category}</p>
-                          </div>
-                          <span className="text-sm font-medium text-purple-600">${product.price}</span>
+                    {filteredResults.products.map((product) => (
+                      <div
+                        key={product.id}
+                        onClick={() => handleProductClick(product)}
+                        className="flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                      >
+                        <img 
+                          src={product.image} 
+                          alt={product.name}
+                          className="w-10 h-10 object-cover rounded"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate dark:text-white">{product.name}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{product.category}</p>
                         </div>
-                      );
-                    })}
+                        <span className="text-sm font-medium text-purple-600 dark:text-purple-400">${product.price}</span>
+                      </div>
+                    ))}
                   </div>
                 )}
 
-                {/* Brands */}
-                {suggestions.brands.length > 0 && (
+                {/* Brands/Stores */}
+                {filteredResults.brands.length > 0 && (
                   <div>
-                    <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b">
-                      <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300">Brands</h4>
+                    <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
+                      <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300">Stores</h4>
                     </div>
-                    {suggestions.brands.map((brand, index) => (
+                    {filteredResults.brands.map((brand, index) => (
                       <div
                         key={index}
-                        onClick={() => handleSearch(brand.name)}
-                        className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                        onClick={() => handleBrandClick(brand.name)}
+                        className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
                       >
-                        <span className="font-medium text-sm">{brand.name}</span>
+                        <span className="font-medium text-sm dark:text-white">{brand.name}</span>
                         <Badge variant="secondary" className="text-xs">
                           {brand.count} products
                         </Badge>
@@ -177,45 +256,29 @@ export const SearchDropdown = ({ placeholder = "Search products, brands, or stor
                 )}
 
                 {/* Categories */}
-                {suggestions.categories.length > 0 && (
+                {filteredResults.categories.length > 0 && (
                   <div>
-                    <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b">
+                    <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
                       <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300">Categories</h4>
                     </div>
-                    {suggestions.categories.map((category, index) => (
-                      <div
-                        key={index}
-                        onClick={() => handleSearch(category.name)}
-                        className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
-                      >
-                        <span className="font-medium text-sm">{category.name}</span>
-                        <Badge variant="outline" className="text-xs">
-                          {category.count.toLocaleString()} items
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Trending */}
-                {suggestions.trending.length > 0 && (
-                  <div>
-                    <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b">
-                      <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 flex items-center">
-                        <TrendingUp className="w-4 h-4 mr-1" />
-                        Trending Searches
-                      </h4>
-                    </div>
-                    {suggestions.trending.map((trend, index) => (
-                      <div
-                        key={index}
-                        onClick={() => handleSearch(trend)}
-                        className="flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
-                      >
-                        <TrendingUp className="w-4 h-4 text-orange-500" />
-                        <span className="text-sm">{trend}</span>
-                      </div>
-                    ))}
+                    {filteredResults.categories.map((category, index) => {
+                      const IconComponent = getCategoryIcon(category.name);
+                      return (
+                        <div
+                          key={index}
+                          onClick={() => handleCategoryClick(category.name)}
+                          className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <IconComponent className="w-4 h-4 text-gray-400" />
+                            <span className="font-medium text-sm dark:text-white capitalize">{category.name}</span>
+                          </div>
+                          <Badge variant="outline" className="text-xs">
+                            {category.count} items
+                          </Badge>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
