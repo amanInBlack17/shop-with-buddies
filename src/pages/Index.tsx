@@ -76,7 +76,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-800">
+    <div className="min-h-screen bg-black text-white">
       <ShoppingHeader 
         cartItemsCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
         activeTab={activeTab}
@@ -89,35 +89,34 @@ const Index = () => {
             {!localStorage.getItem('roomCode') ? (
               <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-8">
-                  <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent mb-4 px-4">
                     Shop Together, Decide Together
                   </h1>
-                  <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-6">
+                  <p className="text-lg md:text-xl lg:text-2xl text-gray-300 mb-6 px-4 max-w-4xl mx-auto">
                     Experience the joy of shopping with friends in real-time, or browse solo
                   </p>
-                  <ShoppingRoom />
+                  <div className="px-4">
+                    <ShoppingRoom />
+                  </div>
                 </div>
                 
-                <ProductGrid 
-                  onProductSelect={setSelectedProduct}
-                  selectedProduct={selectedProduct}
-                  onAddToCart={addToCart}
-                  onAddToWishlist={addToWishlist}
-                  isInWishlist={isInWishlist}
-                />
+                <div className="px-4">
+                  <ProductGrid 
+                    onProductSelect={setSelectedProduct}
+                    selectedProduct={selectedProduct}
+                    onAddToCart={addToCart}
+                    onAddToWishlist={addToWishlist}
+                    isInWishlist={isInWishlist}
+                  />
+                </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 ">
+              <div className="grid grid-cols-1 lg:grid-cols-6 gap-4 lg:gap-6 px-2 lg:px-0">
                 <div className="lg:col-span-1 space-y-4">  
                   <UserPresence roomId={localStorage.getItem('roomCode')} />
-                  <VideoCallPanel roomId={localStorage.getItem('roomCode')} />
-                  {/* <SharedWishlist 
-                    wishlistItems={wishlistItems}
-                    onAddToCart={addToCart}
-                    onRemoveFromWishlist={(productId) => 
-                      setWishlistItems(prev => prev.filter(item => item.id !== productId))
-                    }
-                  /> */}
+                  <div className="hidden lg:block">
+                    <VideoCallPanel roomId={localStorage.getItem('roomCode')} />
+                  </div>
                 </div>
                 
                 <div className="lg:col-span-5">
@@ -130,35 +129,39 @@ const Index = () => {
                     isCollabMode={true}
                   />
                 </div>
-                
-                {/* <div className="lg:col-span-1">
-                  <ChatPanel roomId={roomCode} />
-                </div> */}
               </div>
             )}
           </>
         )}
 
         {activeTab === 'cart' && (
-          <ShoppingCart 
-            cartItems={cartItems}
-            onUpdateQuantity={updateCartQuantity}
-            onAddToWishlist={addToWishlist}
-            isInWishlist={isInWishlist}
-          />
+          <div className="px-4">
+            <ShoppingCart 
+              cartItems={cartItems}
+              onUpdateQuantity={updateCartQuantity}
+              onAddToWishlist={addToWishlist}
+              isInWishlist={isInWishlist}
+            />
+          </div>
         )}
 
-        {activeTab === 'orders' && <OrderHistory />}
+        {activeTab === 'orders' && (
+          <div className="px-4">
+            <OrderHistory />
+          </div>
+        )}
 
         {activeTab === 'wishlist' && (
-          <SharedWishlist 
-            wishlistItems={wishlistItems}
-            onAddToCart={addToCart}
-            onRemoveFromWishlist={(productId) => 
-              setWishlistItems(prev => prev.filter(item => item.id !== productId))
-            }
-            isFullPage={true}
-          />
+          <div className="px-4">
+            <SharedWishlist 
+              wishlistItems={wishlistItems}
+              onAddToCart={addToCart}
+              onRemoveFromWishlist={(productId) => 
+                setWishlistItems(prev => prev.filter(item => item.id !== productId))
+              }
+              isFullPage={true}
+            />
+          </div>
         )}
       </div>
 
